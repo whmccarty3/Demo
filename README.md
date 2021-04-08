@@ -1,5 +1,4 @@
-# Demo
-Data Engineering Demonstration
+# Data Engineering Demonstration
 Will McCarty
 
 Welcome! This idea for a big- data oreinted medical research tool
