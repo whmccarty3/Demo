@@ -1,6 +1,13 @@
 # Demo
 Data Engineering Demonstration
+Will McCarty
 
-Welcome! Join me on a head-first dive into the world of data engineering.
+Welcome! This idea for a big- data oreinted medical research tool
+came from my time doing research with Dr. Joseph Marr at GMU. 
+It works by querying the National Institute of Health's database
+of medical literature (PubMED), storing documents for fast analysis,
+and performing a combination of verbose and predictive searches
+for connections (or "bridges") between two different medical 
+knowledge domains. 
 
-This branch will contain test material before it is merged back to main
+Packages: pymed, pymongo, spacy, time
