@@ -10,3 +10,5 @@ for connections (or "bridges") between two different medical
 knowledge domains. 
 
 Packages: pymed, pymongo, spacy, time
+
+Hard coded database: mongodb://localhost:27017
