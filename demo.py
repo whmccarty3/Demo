@@ -4,8 +4,8 @@ import spacy
 from time import time
 
 
-topic_1 = "high blood pressure"
-topic_2 = "chronic obstructive pulmonary disease"
+topic_1 = "blood pressure"
+topic_2 = "stroke"
 causation_keywords = ["caused", "due", "relationship", "association", "associated"]  # cannot be empty
 db = 0
 max_results = 2000000
@@ -32,7 +32,8 @@ def connect_mongodb():  # Connect to MongoDB
 def setup_spacy():
     global nlp
     nlp = spacy.load("en_core_web_sm")
-    # nlp.add_pipe("merge_entities")  # combine known entities
+    nlp.add_pipe("merge_entities")  # combine known entities
+    train_doc = nlp(topic_1)
     # nlp.add_pipe("merge_noun_chunks")  # combine syntactically related noun objects
     return
 
@@ -45,10 +46,9 @@ def fetch_articles():
         topic_collec = db[topic]
 
         # building search query (2011 - present), topic found in TITLE, ABSTRACT or KEYWORDS
-        search_term = "(((\"2011\"[Date - Publication] : \"3000\"[Date - Publication])) AND " \
-                      "((\"{}\"[Title/Abstract]) OR ({}[MeSH Major Topic]) OR ({}[MeSH Terms]) AND (" \
-                      .format(topic, topic, topic)
-        for word in causation_keywords:  # complete build by appending causation links and trimming the extra OR
+        search_term = "(((\"2011\"[Date - Publication] : \"3000\"[Date - Publication])) AND (({}[Title/Abstract]) OR" \
+                      " ({}[MeSH Major Topic]) OR ({}[MeSH Terms]) AND (".format(topic, topic, topic)
+        for word in causation_keywords:  # complete build by appending causation links and trimming
             search_term += "(" + word + "[Title/Abstract]) OR "
         search_term = search_term[:-4] + ")"
 
@@ -101,20 +101,19 @@ def nlp_analysis(text):
                 connection += 1
 
                 # look earlier in the sentence for topic
-                possible_subjects = [w for w in token.head.lefts]
-                for noun in possible_subjects:
-                    for term in topic_2.split():
-                        # check if any part of topic 2 is present and connected to a causation keyword
-                        if term in noun.text.split():
+                possible_subj1 = [w for w in token.head.lefts]
+                for noun_phrase in possible_subj1:
+
+                    for term in topic_1.split():
+                        # check if either topic is present and connected to a causation keyword
+                        if term in noun_phrase.text.split() or topic_2 in noun_phrase.text.split():
                             connection += 10
                             flag = 1
-                            print("flag activated by " + term)
-                            print("In sentence: " + sentence.text + "\n")
 
-                # check for complete presence of topic 1 in the same sentence
-                if sentence.text.find(topic_1) > -1 and flag == 1:
-                    connection += 100
-
+                    for term in topic_2.split():
+                        # manual parse to search for presence of second topic anywhere in the same sentence
+                        if term in sentence.text.split() and flag == 1:
+                            connection += 100
         flag = 0
     return connection
 
@@ -168,5 +167,4 @@ if __name__ == "__main__":
     for doc in top_results[:10]:
         print("\nConnection score {}".format(doc["connection"]))
         print("Title: {}\n".format(doc["title"]))
-
 
